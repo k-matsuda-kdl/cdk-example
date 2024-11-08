@@ -1,4 +1,4 @@
-# template-cloudfront-s3-lambda-rds
+# cdk-example
 AWS CDKにて、Cloud Front + S3 + Lambda + RDSの環境を構築するテンプレートです。`front`や`backend`には、動作させるための最低限のソースコードを配置する
 
 
