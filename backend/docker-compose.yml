@@ -1,0 +1,26 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: sns-app-db
+    volumes:
+      - db-store:/var/lib/mysql
+      - ./db/my.cnf:/etc/my.cnf
+      - ./db/initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: S9mRUafBjR2W
+      MYSQL_DATABASE: demo
+      MYSQL_USER: user
+      MYSQL_PASSWORD: i3LXpcU2Nfun
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+    ports:
+      - 13306:3306
+    networks:
+      - lambda-network
+volumes:
+  db-store:
+networks:
+  lambda-network:
+    driver: bridge

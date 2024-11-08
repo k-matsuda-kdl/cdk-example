@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  backend
+
+  Sample SAM Template for backend
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+    Cors:
+      AllowMethods: "'POST,GET,OPTIONS'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+Resources:
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth: ## Authセクションを追加
+        DefaultAuthorizer: MyCognitoAuthorizer  ## 何も指定してない場合に使うAuthorizer（認証サービス）
+        Authorizers:  ## Authorizerを追加。複数形になっていることから、たぶん複数設定可能
+          MyCognitoAuthorizer:  ## Authorizerの名前
+            UserPoolArn: arn:aws:cognito-idp:ap-northeast-1:905418413338:userpool/ap-northeast-1_uBaGaNMl2 ## ここにユーザプールのARN
+        ResourcePolicy:
+          CustomStatements: [{
+                      "Effect": "Allow",
+                      "Principal": "*",
+                      "Action": "execute-api:Invoke",
+                      "Resource": "execute-api:/*/*/*",
+                      "Condition": {
+                        "StringEquals": {
+                          "aws:Referer": "wyQUfM5bd8pcXQvcN3igAnACzSP8VCWQ"
+                        }
+                      }
+                    }]
+  MainFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: main-function/
+      Handler: app.lambdaHandler
+      Runtime: nodejs20.x
+      Architectures:
+      - x86_64
+      Environment: 
+        Variables:
+          DATABASE_URL: mysql://root:S9mRUafBjR2W@db:3306/demo
+      Events:
+        Main:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /hello
+            Method: get
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        EntryPoints:
+        - app.ts
+        Loader:
+          - .prisma=file
+          - .so.node=file
+        AssetNames: '[name]'
+
